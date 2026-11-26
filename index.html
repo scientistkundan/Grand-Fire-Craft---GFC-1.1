@@ -6,6 +6,8 @@
     <title>Grand Fire Craft (GFC) - Official Game Portal</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 <body>
     <div id="orientation-warning">
@@ -15,15 +17,11 @@
 
     <div id="first-time-modal" style="display:none;">
         <div class="modal-card">
-            <h2 style="color:#00ffff; margin:0 0 6px 0; letter-spacing:2px;">WELCOME TO GFC</h2>
-            <p style="color:#ccc; font-size:12px; margin:0 0 12px 0;">Enter your Hero Name to generate your permanent 10-Digit UID</p>
-            <input type="text" id="firstNameInput" class="input-field" placeholder="Enter Hero Name" maxlength="15">
-            <div style="margin:8px 0 12px 0; font-size:11px; color:#ffaa00;">
-                <label style="cursor:pointer;">
-                    <input type="checkbox" id="creatorIdCheck" checked> Claim Master Creator UID (0000000001)
-                </label>
-            </div>
-            <button class="start-btn" onclick="createPermanentProfile()">CREATE MY UID & SAVE</button>
+            <h2 style="color:#00ffff; margin:0 0 6px 0; letter-spacing:2px;">GFC GOOGLE LOGIN</h2>
+            <p style="color:#ccc; font-size:12px; margin:0 0 10px 0;">Sign in with Google to get your permanent 10-Digit UID</p>
+            <input type="text" id="firstNameInput" class="input-field" placeholder="Enter Hero Name (Optional)" maxlength="15">
+            <button class="start-btn" style="background:linear-gradient(45deg,#4285f4,#00c6ff); margin-bottom:8px;" onclick="loginWithGoogle()">SIGN IN WITH GOOGLE</button>
+            <button class="option-btn active" style="width:100%; padding:8px;" onclick="createPermanentProfile()">CONTINUE AS GUEST & GET UID</button>
         </div>
     </div>
 
@@ -43,6 +41,11 @@
                 <div class="uid-box">
                     <span>UID: <strong id="displayUidText" style="color:#00ffff; letter-spacing:1px;">0000000001</strong></span>
                     <button class="copy-uid-btn" onclick="copyMyUid()">COPY</button>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px;">
+                    <span id="googleAuthStatus" style="font-size:10px; color:#ffaa00; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Not Logged In</span>
+                    <button id="authActionBtn" class="copy-uid-btn" style="background:#00ff88;" onclick="loginWithGoogle()">GOOGLE LOGIN</button>
                 </div>
 
                 <p class="label-text">OUTFIT STYLE</p>
@@ -107,7 +110,7 @@
 
         <div class="start-btn-container">
             <button class="start-btn" onclick="enterGame()">PLAY GFC • DROP NOW</button>
-            <div style="font-size:10px; color:#bbb; margin-top:4px;">GFC Official Web Edition • 10-Digit UID • Squad & Mic</div>
+            <div style="font-size:10px; color:#bbb; margin-top:4px;">GFC Official Web Edition • Google Auth • 10-Digit UID & Mic</div>
         </div>
     </div>
 
