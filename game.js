@@ -2049,4 +2049,25 @@ function loop() {
     }
 
     renderer.render(scene, camera);
+if (typeof window.loginWithGoogle !== "function") {
+    window.loginWithGoogle = async function() {
+        try {
+            if (window.firebase && !firebase.apps.length && typeof firebaseConfig !== "undefined") {
+                firebase.initializeApp(firebaseConfig);
+            }
+            if (window.firebase && firebase.auth) {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: "select_account" });
+                const res = await firebase.auth().signInWithPopup(provider);
+                if (res && res.user && typeof completeGoogleUserSetup === "function") {
+                    await completeGoogleUserSetup(res.user);
+                    alert("Google Login Successful! UID: " + playerProfile.uid);
+                }
+            } else {
+                alert("Firebase Auth SDK not loaded. Check index.html scripts.");
+            }
+        } catch (e) {
+            alert("Login Error: " + (e.message || e.code || e));
+        }
+    };
 }
