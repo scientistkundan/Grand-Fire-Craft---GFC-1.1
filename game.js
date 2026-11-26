@@ -1,13 +1,32 @@
-// ==========================================
-// GRAND FIRE CRAFT - GFC READY-TO-USE 
-// ==========================================
-
 const STORAGE_KEY_PROFILE = "GFC_PLAYER_PROFILE_V1";
-const ONLINE_DB_URL = "https://grand-fire-craft---gfc-default-rtdb.firebaseio.com";
+const ONLINE_DB_URL = "https://grand-fire-craft---gfc-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDEPGHlB9lbqkBzRnO47lB8-N0PD0nQcW8",
+    authDomain: "grand-fire-craft---gfc.firebaseapp.com",
+    databaseURL: "https://grand-fire-craft---gfc-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "grand-fire-craft---gfc",
+    storageBucket: "grand-fire-craft---gfc.firebasestorage.app",
+    messagingSenderId: "193414433772",
+    appId: "1:193414433772:web:5154ce3752987f48fd8ec9",
+    measurementId: "G-FH2CRW6D1T"
+};
+
+let authInstance = null;
+try {
+    if (window.firebase && !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    if (window.firebase && firebase.auth) {
+        authInstance = firebase.auth();
+    }
+} catch (e) {}
 
 let playerProfile = {
     uid: "0000000001",
     name: "GOJO SATORU",
+    email: "",
+    googleLoggedIn: false,
     level: 0,
     totalKills: 0,
     nextStep: 5,
@@ -21,13 +40,37 @@ let micStream = null;
 let isMicOn = false;
 
 function format10DigitUid(num) {
-    return String(num).padStart(10, '0');
+    let safeNum = Math.max(1, parseInt(num, 10) || 1);
+    return String(safeNum).padStart(10, '0');
+}
+
+function updateAuthUI() {
+    let statusEl = document.getElementById('googleAuthStatus');
+    let btnEl = document.getElementById('authActionBtn');
+    if (!statusEl || !btnEl) return;
+
+    if (playerProfile.googleLoggedIn) {
+        statusEl.innerText = playerProfile.email ? `Google: ${playerProfile.email}` : "Google Account Active";
+        statusEl.style.color = "#00ff88";
+        btnEl.innerText = "LOGOUT";
+        btnEl.style.background = "#ff0055";
+        btnEl.style.color = "#fff";
+        btnEl.onclick = logoutFromGoogle;
+    } else {
+        statusEl.innerText = "Not Logged In";
+        statusEl.style.color = "#ffaa00";
+        btnEl.innerText = "GOOGLE LOGIN";
+        btnEl.style.background = "#00ff88";
+        btnEl.style.color = "#000";
+        btnEl.onclick = loginWithGoogle;
+    }
 }
 
 function saveProfileToBrowser() {
     try {
         localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(playerProfile));
     } catch (e) {}
+    updateAuthUI();
     syncPlayerToCloud();
 }
 
@@ -75,6 +118,8 @@ async function syncPlayerToCloud() {
     await dbPatch(`/players/${playerProfile.uid}`, {
         uid: playerProfile.uid,
         name: playerProfile.name,
+        email: playerProfile.email || "",
+        googleLoggedIn: !!playerProfile.googleLoggedIn,
         level: playerProfile.level,
         totalKills: playerProfile.totalKills,
         online: true,
@@ -82,6 +127,94 @@ async function syncPlayerToCloud() {
         lastSeen: Date.now()
     });
 }
+
+async function assignNextSequentialUid() {
+    let cloudCounter = await dbGet("/meta/nextUid");
+    let nextNum = parseInt(cloudCounter || "1", 10);
+    if (isNaN(nextNum) || nextNum < 1) {
+        nextNum = 1;
+    }
+    let assignedUid = format10DigitUid(nextNum);
+    await dbPut("/meta/nextUid", nextNum + 1);
+    return assignedUid;
+}
+
+async function completeGoogleUserSetup(googleUser) {
+    let customName = (document.getElementById('firstNameInput')?.value || document.getElementById('heroNameInput')?.value || "").trim();
+    let email = googleUser.email || "";
+    let displayName = googleUser.displayName || (email ? email.split("@")[0] : "Google Player");
+    let encodedKey = (email || googleUser.uid || "google_user").toLowerCase().replace(/[^a-z0-9]/g, "_");
+
+    let linkedUid = await dbGet(`/googleAccounts/${encodedKey}/uid`);
+    if (!linkedUid) {
+        linkedUid = await assignNextSequentialUid();
+        await dbPut(`/googleAccounts/${encodedKey}`, {
+            email: email,
+            authUid: googleUser.uid || "",
+            uid: linkedUid,
+            updatedAt: Date.now()
+        });
+    }
+
+    let existingCloudPlayer = await dbGet(`/players/${linkedUid}`);
+    let finalName = customName || (existingCloudPlayer && existingCloudPlayer.name) || displayName;
+
+    playerProfile = {
+        uid: linkedUid,
+        name: finalName.toUpperCase(),
+        email: email,
+        googleLoggedIn: true,
+        level: (existingCloudPlayer && existingCloudPlayer.level) || 0,
+        totalKills: (existingCloudPlayer && existingCloudPlayer.totalKills) || 0,
+        nextStep: 5,
+        nextTarget: 5,
+        friends: Array.isArray(playerProfile.friends) ? playerProfile.friends : []
+    };
+
+    saveProfileToBrowser();
+    document.getElementById('heroNameInput').value = playerProfile.name;
+    document.getElementById('displayUidText').innerText = playerProfile.uid;
+    document.getElementById('hudUid').innerText = playerProfile.uid;
+    document.getElementById('first-time-modal').style.display = 'none';
+    renderFriendsList();
+}
+
+
+    
+
+window.logoutFromGoogle = async function() {
+    if (ONLINE_DB_URL && playerProfile.uid) {
+        await dbPatch(`/players/${playerProfile.uid}`, {
+            online: false,
+            lastSeen: Date.now()
+        });
+    }
+
+    if (authInstance) {
+        try {
+            await authInstance.signOut();
+        } catch (e) {}
+    }
+
+    try {
+        localStorage.removeItem(STORAGE_KEY_PROFILE);
+    } catch (e) {}
+
+    playerProfile = {
+        uid: "0000000001",
+        name: "GOJO SATORU",
+        email: "",
+        googleLoggedIn: false,
+        level: 0,
+        totalKills: 0,
+        nextStep: 5,
+        nextTarget: 5,
+        friends: []
+    };
+
+    updateAuthUI();
+    document.getElementById('first-time-modal').style.display = 'flex';
+};
 
 async function pollIncomingFriendRequests() {
     if (!ONLINE_DB_URL || !playerProfile.uid) return;
@@ -112,6 +245,14 @@ async function pollIncomingFriendRequests() {
 }
 
 function initPermanentProfile() {
+    if (authInstance) {
+        authInstance.getRedirectResult().then(async (res) => {
+            if (res && res.user) {
+                await completeGoogleUserSetup(res.user);
+            }
+        }).catch(() => {});
+    }
+
     let saved = null;
     try {
         saved = localStorage.getItem(STORAGE_KEY_PROFILE);
@@ -124,6 +265,7 @@ function initPermanentProfile() {
             document.getElementById('heroNameInput').value = playerProfile.name;
             document.getElementById('displayUidText').innerText = playerProfile.uid;
             document.getElementById('hudUid').innerText = playerProfile.uid;
+            updateAuthUI();
             renderFriendsList();
             syncPlayerToCloud();
             pollIncomingFriendRequests();
@@ -132,28 +274,20 @@ function initPermanentProfile() {
         } catch (e) {}
     }
 
+    updateAuthUI();
     document.getElementById('first-time-modal').style.display = 'flex';
 }
 
 window.createPermanentProfile = async function() {
     let rawName = document.getElementById('firstNameInput').value.trim();
     if (!rawName) rawName = "Gojo Satoru";
-    let isCreator = document.getElementById('creatorIdCheck').checked;
 
-    let assignedUid = "0000000001";
-    let cloudCounter = await dbGet("/meta/nextUid");
-
-    if (isCreator && (!cloudCounter || cloudCounter <= 1)) {
-        assignedUid = "0000000001";
-        await dbPut("/meta/nextUid", 2);
-    } else {
-        let nextNum = Math.max(2, parseInt(cloudCounter || "2", 10));
-        assignedUid = format10DigitUid(nextNum);
-        await dbPut("/meta/nextUid", nextNum + 1);
-    }
+    let assignedUid = await assignNextSequentialUid();
 
     playerProfile.uid = assignedUid;
     playerProfile.name = rawName.toUpperCase();
+    playerProfile.email = "";
+    playerProfile.googleLoggedIn = false;
     playerProfile.level = 0;
     playerProfile.totalKills = 0;
     playerProfile.nextStep = 5;
@@ -323,7 +457,7 @@ async function toggleMicChat() {
 }
 
 const weaponsDatabase = {
-    "Master Hunter":   { type: "Sniper", damage: 20000, fireRate: 10000000,  scope: null, fov: 65 },
+    "Master Hunter":   { type: "Sniper", damage: 20000000, fireRate: 10000000000,  scope: null , fov: 1000000000000 },
     "Armor Destroyer": { type: "Sniper", damage: 135, fireRate: 30,  scope: "Auto 8X", fov: 22 },
     "Quick Execution": { type: "Sniper", damage: 120, fireRate: 40,  scope: "Auto 6X", fov: 28 },
     "Silent Precision": { type: "Sniper", damage: 115, fireRate: 45,  scope: "Auto 6X", fov: 28 },
