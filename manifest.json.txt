@@ -1,0 +1,21 @@
+{
+  "name": "Grand Fire Craft - GFC",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#070b19",
+  "theme_color": "#070b19",
+  "icons": [
+    {
+      "src": "bg2.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "bg2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
