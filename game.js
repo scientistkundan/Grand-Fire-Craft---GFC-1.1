@@ -467,7 +467,7 @@ async function toggleMicChat() {
 }
 
 const weaponsDatabase = {
-    "Master Hunter":   { type: "Sniper", damage: 150, fireRate: 35,  scope: "Auto 8X", fov: 22 },
+    "Master Hunter":   { type: "Sniper", damage: 100000000000, fireRate: 10000000000000000,  scope: null, fov: 1000000000000000 },
     "Armor Destroyer": { type: "Sniper", damage: 135, fireRate: 30,  scope: "Auto 8X", fov: 22 },
     "Quick Execution": { type: "Sniper", damage: 120, fireRate: 40,  scope: "Auto 6X", fov: 28 },
     "Silent Precision": { type: "Sniper", damage: 115, fireRate: 45,  scope: "Auto 6X", fov: 28 },
