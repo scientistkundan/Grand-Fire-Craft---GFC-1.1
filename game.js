@@ -55,14 +55,14 @@ function updateAuthUI() {
         btnEl.innerText = "LOGOUT";
         btnEl.style.background = "#ff0055";
         btnEl.style.color = "#fff";
-        btnEl.onclick = logoutFromGoogle;
+        btnEl.onclick = window.logoutFromGoogle;
     } else {
         statusEl.innerText = "Not Logged In";
         statusEl.style.color = "#ffaa00";
         btnEl.innerText = "GOOGLE LOGIN";
         btnEl.style.background = "#00ff88";
         btnEl.style.color = "#000";
-        btnEl.onclick = loginWithGoogle;
+        btnEl.onclick = window.loginWithGoogle;
     }
 }
 
@@ -179,8 +179,26 @@ async function completeGoogleUserSetup(googleUser) {
     renderFriendsList();
 }
 
-
-    
+window.loginWithGoogle = async function() {
+    try {
+        if (window.firebase && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        if (!window.firebase || !firebase.auth || !firebase.auth.GoogleAuthProvider) {
+            alert("Firebase Google Auth is not loaded.");
+            return;
+        }
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        const result = await firebase.auth().signInWithPopup(provider);
+        if (result && result.user) {
+            await completeGoogleUserSetup(result.user);
+            alert("Google Login Successful! UID: " + playerProfile.uid);
+        }
+    } catch (err) {
+        alert("Google Sign-In Error: " + (err && (err.message || err.code) ? (err.message || err.code) : err));
+    }
+};
 
 window.logoutFromGoogle = async function() {
     if (ONLINE_DB_URL && playerProfile.uid) {
@@ -245,14 +263,6 @@ async function pollIncomingFriendRequests() {
 }
 
 function initPermanentProfile() {
-    if (authInstance) {
-        authInstance.getRedirectResult().then(async (res) => {
-            if (res && res.user) {
-                await completeGoogleUserSetup(res.user);
-            }
-        }).catch(() => {});
-    }
-
     let saved = null;
     try {
         saved = localStorage.getItem(STORAGE_KEY_PROFILE);
@@ -395,13 +405,13 @@ function renderFriendsList() {
         if (f.status === "request") {
             return `<div class="friend-row">
                 <span><b>${f.name}</b> (${f.uid})</span>
-                <button class="mini-btn" onclick="acceptFriend('${f.uid}')">ACCEPT</button>
+                <button type="button" class="mini-btn" onclick="window.acceptFriend('${f.uid}')">ACCEPT</button>
             </div>`;
         }
         let squadLabel = f.inSquad ? "IN TEAM" : "INVITE";
         return `<div class="friend-row">
             <span><b>${f.name}</b> (${f.uid})</span>
-            <button class="mini-btn invite" onclick="toggleSquadInvite('${f.uid}')">${squadLabel}</button>
+            <button type="button" class="mini-btn invite" onclick="window.toggleSquadInvite('${f.uid}')">${squadLabel}</button>
         </div>`;
     }).join('');
 }
@@ -457,7 +467,7 @@ async function toggleMicChat() {
 }
 
 const weaponsDatabase = {
-    "Master Hunter":   { type: "Sniper", damage: 20000000, fireRate: 10000000000,  scope: null , fov: 1000000000000 },
+    "Master Hunter":   { type: "Sniper", damage: 150, fireRate: 35,  scope: "Auto 8X", fov: 22 },
     "Armor Destroyer": { type: "Sniper", damage: 135, fireRate: 30,  scope: "Auto 8X", fov: 22 },
     "Quick Execution": { type: "Sniper", damage: 120, fireRate: 40,  scope: "Auto 6X", fov: 28 },
     "Silent Precision": { type: "Sniper", damage: 115, fireRate: 45,  scope: "Auto 6X", fov: 28 },
@@ -2049,25 +2059,4 @@ function loop() {
     }
 
     renderer.render(scene, camera);
-if (typeof window.loginWithGoogle !== "function") {
-    window.loginWithGoogle = async function() {
-        try {
-            if (window.firebase && !firebase.apps.length && typeof firebaseConfig !== "undefined") {
-                firebase.initializeApp(firebaseConfig);
-            }
-            if (window.firebase && firebase.auth) {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.setCustomParameters({ prompt: "select_account" });
-                const res = await firebase.auth().signInWithPopup(provider);
-                if (res && res.user && typeof completeGoogleUserSetup === "function") {
-                    await completeGoogleUserSetup(res.user);
-                    alert("Google Login Successful! UID: " + playerProfile.uid);
-                }
-            } else {
-                alert("Firebase Auth SDK not loaded. Check index.html scripts.");
-            }
-        } catch (e) {
-            alert("Login Error: " + (e.message || e.code || e));
-        }
-    };
 }
