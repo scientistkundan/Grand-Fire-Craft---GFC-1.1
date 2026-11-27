@@ -20,8 +20,8 @@
             <h2 style="color:#00ffff; margin:0 0 6px 0; letter-spacing:2px;">GFC GOOGLE LOGIN</h2>
             <p style="color:#ccc; font-size:12px; margin:0 0 10px 0;">Sign in with Google to get your permanent 10-Digit UID</p>
             <input type="text" id="firstNameInput" class="input-field" placeholder="Enter Hero Name (Optional)" maxlength="15">
-            <button class="start-btn" style="background:linear-gradient(45deg,#4285f4,#00c6ff); margin-bottom:8px;" onclick="loginWithGoogle()">SIGN IN WITH GOOGLE</button>
-            <button class="option-btn active" style="width:100%; padding:8px;" onclick="createPermanentProfile()">CONTINUE AS GUEST & GET UID</button>
+            <button type="button" class="start-btn" style="background:linear-gradient(45deg,#4285f4,#00c6ff); margin-bottom:8px;" onclick="window.loginWithGoogle()">SIGN IN WITH GOOGLE</button>
+            <button type="button" class="option-btn active" style="width:100%; padding:8px;" onclick="window.createPermanentProfile()">CONTINUE AS GUEST & GET UID</button>
         </div>
     </div>
 
@@ -36,30 +36,30 @@
             <div class="panel">
                 <h4>PLAYER PROFILE</h4>
                 <p class="label-text">HERO NAME</p>
-                <input type="text" id="heroNameInput" class="input-field" value="Gojo Satoru" maxlength="15" onchange="updateSavedName(this.value)">
+                <input type="text" id="heroNameInput" class="input-field" value="Gojo Satoru" maxlength="15" onchange="window.updateSavedName(this.value)">
                 
                 <div class="uid-box">
                     <span>UID: <strong id="displayUidText" style="color:#00ffff; letter-spacing:1px;">0000000001</strong></span>
-                    <button class="copy-uid-btn" onclick="copyMyUid()">COPY</button>
+                    <button type="button" class="copy-uid-btn" onclick="window.copyMyUid()">COPY</button>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px;">
                     <span id="googleAuthStatus" style="font-size:10px; color:#ffaa00; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Not Logged In</span>
-                    <button id="authActionBtn" class="copy-uid-btn" style="background:#00ff88;" onclick="loginWithGoogle()">GOOGLE LOGIN</button>
+                    <button type="button" id="authActionBtn" class="copy-uid-btn" style="background:#00ff88; color:#000;" onclick="window.loginWithGoogle()">GOOGLE LOGIN</button>
                 </div>
 
                 <p class="label-text">OUTFIT STYLE</p>
                 <div class="option-group">
-                    <button class="option-btn active" onclick="setOutfit(0x111111, this)">Dark Pro</button>
-                    <button class="option-btn" onclick="setOutfit(0xffffff, this)">White Gojo</button>
-                    <button class="option-btn" onclick="setOutfit(0x0055ff, this)">Cyber Blue</button>
+                    <button type="button" class="option-btn active" onclick="window.setOutfit(0x111111, this)">Dark Pro</button>
+                    <button type="button" class="option-btn" onclick="window.setOutfit(0xffffff, this)">White Gojo</button>
+                    <button type="button" class="option-btn" onclick="window.setOutfit(0x0055ff, this)">Cyber Blue</button>
                 </div>
             </div>
 
             <div class="panel">
                 <h4>WEAPON & WORLD</h4>
                 <p class="label-text">SELECT WEAPON</p>
-                <select id="lobbyWeaponSelect" class="input-field" onchange="selectLobbyWeapon(this.value)">
+                <select id="lobbyWeaponSelect" class="input-field" onchange="window.selectLobbyWeapon(this.value)">
                     <optgroup label="Snipers (Auto Scope)">
                         <option value="Master Hunter">Master Hunter (AWM - DMG: 150 | Auto 8X)</option>
                         <option value="Armor Destroyer">Armor Destroyer (M82B - DMG: 135 | Auto 8X)</option>
@@ -90,8 +90,8 @@
 
                 <p class="label-text">TIME OF DAY</p>
                 <div class="option-group">
-                    <button class="option-btn active" onclick="setMap(0x3a6b35, this)">Day City</button>
-                    <button class="option-btn" onclick="setMap(0x12121c, this)">Neon Night</button>
+                    <button type="button" class="option-btn active" onclick="window.setMap(0x3a6b35, this)">Day City</button>
+                    <button type="button" class="option-btn" onclick="window.setMap(0x12121c, this)">Neon Night</button>
                 </div>
             </div>
 
@@ -100,7 +100,7 @@
                 <p class="label-text">ADD FRIEND BY 10-DIGIT UID</p>
                 <div style="display:flex; gap:5px; margin-bottom:6px;">
                     <input type="text" id="friendUidInput" class="input-field" style="margin-bottom:0; padding:7px; font-size:12px;" placeholder="e.g. 0000000002" maxlength="10">
-                    <button class="option-btn active" style="flex:0 0 65px;" onclick="sendFriendRequest()">ADD</button>
+                    <button type="button" class="option-btn active" style="flex:0 0 65px;" onclick="window.sendFriendRequest()">ADD</button>
                 </div>
 
                 <p class="label-text">REQUESTS & FRIENDS LIST</p>
@@ -109,7 +109,7 @@
         </div>
 
         <div class="start-btn-container">
-            <button class="start-btn" onclick="enterGame()">PLAY GFC • DROP NOW</button>
+            <button type="button" class="start-btn" onclick="window.enterGame()">PLAY GFC • DROP NOW</button>
             <div style="font-size:10px; color:#bbb; margin-top:4px;">GFC Official Web Edition • Google Auth • 10-Digit UID & Mic</div>
         </div>
     </div>
@@ -150,11 +150,11 @@
     <div id="controls">
         <div id="stick"><div id="knob"></div></div>
         <div class="action-btns">
-            <button class="btn" id="micBtn">MIC<br><span id="micStateLabel">OFF</span></button>
-            <button class="btn" id="healBtn">HEAL<br><span id="healBadge">(2)</span></button>
-            <button class="btn" id="carBtn">RIDE</button>
-            <button class="btn" id="jumpBtn">JUMP</button>
-            <button class="btn" id="fireBtn">FIRE</button>
+            <button type="button" class="btn" id="micBtn">MIC<br><span id="micStateLabel">OFF</span></button>
+            <button type="button" class="btn" id="healBtn">HEAL<br><span id="healBadge">(2)</span></button>
+            <button type="button" class="btn" id="carBtn">RIDE</button>
+            <button type="button" class="btn" id="jumpBtn">JUMP</button>
+            <button type="button" class="btn" id="fireBtn">FIRE</button>
         </div>
     </div>
 
